@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Server Budget Guide</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app">
+
+    <h1 class="title">Monthly Budgeting</h1>
+
+    <!-- MONTH SELECTOR -->
+    <div class="month-bar">
+      <button onclick="changeMonth(-1)">←</button>
+      <span id="monthLabel"></span>
+      <button onclick="changeMonth(1)">→</button>
+    </div>
+
+    <div class="main">
+
+      <!-- LEFT: INCOME INPUT -->
+      <div class="panel left">
+        <h2>Add Income</h2>
+        <input type="number" id="incomeInput" placeholder="Enter income">
+        <button onclick="addIncome()">Add</button>
+      </div>
+
+      <!-- CENTER: CALENDAR -->
+      <div class="center">
+        <div id="calendar" class="calendar"></div>
+
+        <div class="payday">
+          Days until payday: <span id="days">0</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: OVERVIEW -->
+      <div class="panel right">
+        <h2>Overview</h2>
+
+        <p>Total Income: $<span id="income">0</span></p>
+
+        <div id="categories"></div>
+
+        <button onclick="openPopup()">+ Add Category</button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- CATEGORY POPUP -->
+  <div id="popup" class="popup hidden">
+    <div class="popup-content">
+      <h2>Add Category</h2>
+
+      <input type="text" id="catName" placeholder="Category name">
+
+      <select id="catType">
+        <option value="percent">Percentage (%)</option>
+        <option value="fixed">Fixed Amount ($)</option>
+      </select>
+
+      <input type="number" id="catValue" placeholder="Enter value">
+
+      <div class="popup-buttons">
+        <button onclick="addCategory()">Save</button>
+        <button onclick="closePopup()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY POPUP -->
+  <div id="dayPopup" class="popup hidden">
+    <div class="popup-content">
+      <h3>Edit Income</h3>
+
+      <input type="number" id="dayAmount" placeholder="Enter income">
+
+      <div class="popup-buttons">
+        <button onclick="saveDayIncome()">Save</button>
+        <button onclick="deleteDayIncome()">Delete</button>
+        <button onclick="closeDayPopup()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
