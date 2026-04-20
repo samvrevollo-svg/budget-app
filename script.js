@@ -1,4 +1,6 @@
+let completedCategories = new Set();
 let appData = JSON.parse(localStorage.getItem("budgetApp")) || {};
+let needs = [];
 
 let currentDate = new Date();
 let currentMonth = currentDate.getMonth();
@@ -47,6 +49,69 @@ function updateMonthLabel() {
     months[currentMonth] + " " + currentYear;
 }
 
+/* QUIZ */
+function nextStep(step) {
+  document.querySelectorAll(".quiz-step").forEach(s => s.classList.add("hidden"));
+  document.getElementById("step" + step).classList.remove("hidden");
+}
+
+function addNeed() {
+  let input = document.getElementById("qNeedInput");
+  let value = input.value;
+
+  if (!value) return;
+
+  needs.push(value);
+  input.value = "";
+
+  renderNeeds();
+}
+
+function finishQuiz() {
+  let name = document.getElementById("qName").value;
+  let payday = Number(document.getElementById("qPayday").value);
+
+  localStorage.setItem("userName", name);
+  localStorage.setItem("payday", payday);
+  localStorage.setItem("quizDone", "true");
+
+  let data = getMonthData();
+  data.categories = [];
+
+  needs.forEach(n => {
+    data.categories.push({
+      name: n,
+      type: "fixed",
+      value: 1000
+    });
+  });
+
+  saveData();
+
+  document.getElementById("quiz").classList.add("hidden");
+
+  init();
+}
+
+function renderNeeds() {
+  let container = document.getElementById("needsList");
+  container.innerHTML = "";
+
+  needs.forEach(n => {
+    let div = document.createElement("div");
+    div.classList.add("need-item");
+    div.innerText = n;
+    container.appendChild(div);
+  });
+}
+
+/* GREETING */
+function updateGreeting() {
+  let name = localStorage.getItem("userName") || "";
+  document.getElementById("greeting").innerText =
+    name ? `Hey ${name} 👋` : "Monthly Budgeting";
+}
+
 /* CALENDAR */
 function generateCalendar() {
   let calendar = document.getElementById("calendar");
@@ -66,9 +131,7 @@ function generateCalendar() {
       <div>$${income}</div>
     `;
 
-    div.onclick = () => {
-      openDayPopup(i);
-    };
+    div.onclick = () => openDayPopup(i);
 
     calendar.appendChild(div);
   }
@@ -80,29 +143,44 @@ function getTotalIncome() {
   return Object.values(data.income).reduce((a, b) => a + b, 0);
 }
 
-/* CATEGORY ADD/EDIT */
+/* ADD INCOME (FIXED) */
+function addIncome() {
+  let input = document.getElementById("incomeInput");
+  let value = Number(input.value);
+
+  if (!value) return;
+
+  let data = getMonthData();
+  let today = new Date().getDate();
+
+  data.income[today] = (data.income[today] || 0) + value;
+
+  saveData();
+  input.value = "";
+  init();
+}
+
+/* CATEGORY */
 function addCategory() {
   let name = document.getElementById("catName").value;
-  let type = document.getElementById("catType").value;
   let value = Number(document.getElementById("catValue").value);
+  let type = document.getElementById("catType").value;
 
   if (!name || !value) return;
 
   let data = getMonthData();
 
-  if (window.editingIndex !== undefined) {
-    data.categories[window.editingIndex] = { name, type, value };
-    window.editingIndex = undefined;
-  } else {
-    data.categories.push({ name, type, value });
-  }
+  data.categories.push({
+    name,
+    type,
+    value
+  });
 
   saveData();
   closePopup();
   init();
 }
 
-/* DELETE CATEGORY */
 function deleteCategory(index) {
   let data = getMonthData();
   data.categories.splice(index, 1);
@@ -111,13 +189,11 @@ function deleteCategory(index) {
   init();
 }
 
-/* EDIT CATEGORY */
 function editCategory(index) {
   let data = getMonthData();
   let cat = data.categories[index];
 
   document.getElementById("catName").value = cat.name;
-  document.getElementById("catType").value = cat.type;
   document.getElementById("catValue").value = cat.value;
 
   window.editingIndex = index;
@@ -131,11 +207,10 @@ function getIcon(name) {
   if (name.includes("car")) return "🚗";
   if (name.includes("save")) return "💰";
   if (name.includes("food")) return "🍔";
-  if (name.includes("dad")) return "👨";
   return "💸";
 }
 
-/* RENDER CATEGORIES */
+/* RENDER CATEGORIES (FIXED) */
 function renderCategories() {
   let container = document.getElementById("categories");
   container.innerHTML = "";
@@ -143,61 +218,79 @@ function renderCategories() {
   let data = getMonthData();
   let totalIncome = getTotalIncome();
 
-  let totalAllocated = 0;
-
   data.categories.forEach((cat, index) => {
-    let amount = cat.type === "percent"
-      ? (totalIncome * cat.value) / 100
-      : cat.value;
 
-    totalAllocated += amount;
+    let amount = 0;
+    let percent = 0;
 
-    let percent = (amount / totalIncome) * 100 || 0;
+    if (totalIncome > 0) {
+      if (cat.type === "percent") {
+        amount = (totalIncome * cat.value) / 100;
+        percent = cat.value;
+      } else {
+        amount = totalIncome;
+        percent = (cat.value / totalIncome) * 100;
+      }
+     percent = totalIncome > 0
+  ? (totalIncome / cat.value) * 100
+  : 0;
+    }
+
+    percent = Math.min(percent, 100);
 
     let div = document.createElement("div");
     div.classList.add("category");
 
     div.innerHTML = `
-      <div class="category-header">
-        <span>${getIcon(cat.name)} ${cat.name}</span>
-        <span>$${amount.toFixed(0)}</span>
+      <div class="category-main" onclick="toggleCategory(${index})">
+        <div class="category-header">
+          <span>${getIcon(cat.name)} ${cat.name}</span>
+          <span>$${totalIncome.toFixed(0)} / $${cat.value}</span>
+        </div>
+
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:${percent}%"></div>
+        </div>
       </div>
 
-      <div class="progress-bar">
-        <div class="progress-fill" style="width:${percent}%"></div>
-      </div>
-
-      <div style="margin-top:5px;">
-        <button onclick="editCategory(${index})">✏️</button>
-        <button onclick="deleteCategory(${index})">🗑️</button>
+      <div class="category-actions hidden" id="actions-${index}">
+        <button onclick="editCategory(${index})">✏️ Edit</button>
+        <button onclick="deleteCategory(${index})">🗑️ Delete</button>
       </div>
     `;
 
     container.appendChild(div);
   });
 
-  let remaining = totalIncome - totalAllocated;
+  let messageDiv = document.createElement("div");
+  messageDiv.classList.add("remaining");
 
-  let remainingDiv = document.createElement("div");
-  remainingDiv.classList.add("category", "remaining");
-
-  if (remaining < 0) {
-    remainingDiv.classList.add("negative");
+  if (totalIncome === 0) {
+    messageDiv.innerText = "Add income to start 💰";
+  } else {
+    messageDiv.innerText = "Income distributed ✅";
   }
 
-  remainingDiv.innerHTML = `
-    Remaining: $${remaining.toFixed(2)}
-  `;
+  container.appendChild(messageDiv);
+}
 
-  container.appendChild(remainingDiv);
+function toggleCategory(index) {
+  let el = document.getElementById(`actions-${index}`);
+  el.classList.toggle("hidden");
 }
 
 /* PAYDAY */
 function updatePayday() {
   let today = new Date();
-  let nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+  let payday = Number(localStorage.getItem("payday")) || 1;
 
-  let diff = nextMonth - today;
+  let nextPayday = new Date(today.getFullYear(), today.getMonth(), payday);
+
+  if (today.getDate() >= payday) {
+    nextPayday = new Date(today.getFullYear(), today.getMonth() + 1, payday);
+  }
+
+  let diff = nextPayday - today;
   let days = Math.ceil(diff / (1000 * 60 * 60 * 24));
 
   document.getElementById("days").innerText = days;
@@ -255,10 +348,15 @@ function init() {
   generateCalendar();
   renderCategories();
   updatePayday();
+  updateGreeting();
 
   let totalIncome = getTotalIncome();
   document.getElementById("income").innerText = totalIncome.toFixed(2);
+
+  if (!localStorage.getItem("quizDone")) {
+    document.getElementById("quiz").classList.remove("hidden");
+  }
 }
 
-/* START APP */
+/* START */
 init();
