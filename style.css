@@ -10,6 +10,132 @@ body {
   margin: auto;
   padding: 20px;
 }
+.category {
+  padding: 12px;
+  border-radius: 14px;
+  background: #f7f8fc;
+  margin-top: 10px;
+}
+
+/* CLICKABLE AREA */
+.category-main {
+  cursor: pointer;
+}
+
+/* ACTION BUTTONS */
+.category-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+.category-actions {
+  transition: all 0.2s ease;
+}
+/* QUIZ CARD */
+.quiz-card {
+  background: white;
+  border-radius: 20px;
+  padding: 25px;
+  width: 90%;
+  max-width: 340px;
+
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  animation: popIn 0.25s ease;
+}
+
+.quiz-card h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.quiz-sub {
+  font-size: 13px;
+  color: #777;
+  margin-bottom: 15px;
+}
+
+.quiz-group {
+  margin-top: 12px;
+}
+
+.quiz-group label {
+  font-size: 13px;
+  color: #555;
+}
+.quiz-step {
+  display: flex;
+  flex-direction: column;
+}
+
+.quiz-step.hidden {
+  display: none;
+}
+
+#needsList {
+  margin-top: 10px;
+}
+
+.need-item {
+  background: #f1f3f6;
+  padding: 8px;
+  border-radius: 10px;
+  margin-top: 5px;
+  font-size: 13px;
+}
+.quiz-group input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 5px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+}
+
+.quiz-group input:focus {
+  outline: none;
+  border: 1px solid #1db954;
+  box-shadow: 0 0 0 2px rgba(29,185,84,0.15);
+}
+
+.quiz-btn {
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: #1db954;
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
+}
+.category-actions button {
+  width: 48%;
+  padding: 8px;
+  border-radius: 10px;
+  border: none;
+  font-size: 12px;
+}
+.remaining {
+  font-weight: 600;
+  text-align: center;
+}
+
+.remaining.negative {
+  color: #ff4d4d;
+}
+
+.remaining:not(.negative) {
+  color: #1db954;
+}
+/* COLORS */
+.category-actions button:first-child {
+  background: #e5e7eb;
+}
+
+.category-actions button:last-child {
+  background: #ff4d4d;
+  color: white;
+}
 
 /* TITLE */
 .title {
@@ -111,6 +237,29 @@ body {
   justify-content: space-between;
   font-size: 13px;
   margin-bottom: 5px;
+}
+.progress-fill.over {
+  background: #ff4d4d; /* red */
+}
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* ADD THIS */
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+.progress-fill {
+  opacity: 0.9;
+}
+
+.no-income .progress-fill {
+  background: #ccc;
+}
+
+.category-header span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* THIS creates space between emoji + text */
 }
 
 /* PROGRESS BAR */
